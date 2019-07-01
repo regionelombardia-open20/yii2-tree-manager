@@ -539,8 +539,9 @@
             var self = this, keys = '', desc = '';
             self.$tree.find('.kv-selected').each(function () {
                 var $node = $(this), sep = $h.isEmpty(keys) ? '' : ',';
+                var SepName = $h.isEmpty(keys) ? '' : '||';
                 keys += sep + $node.data('key');
-                desc += sep + $node.find('>.kv-tree-list .kv-node-label').text();
+                desc += SepName + $node.find('>.kv-tree-list .kv-node-label').text();
             });
             self.$element.val(keys);
             self.raise('treeview.change', [keys, desc]);
