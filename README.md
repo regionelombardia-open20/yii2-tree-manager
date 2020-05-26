@@ -1,15 +1,5 @@
-<h1 align="center">
-    <a href="http://demos.krajee.com" title="Krajee Demos" target="_blank">
-        <img src="http://kartik-v.github.io/bootstrap-fileinput-samples/samples/krajee-logo-b.png" alt="Krajee Logo"/>
-    </a>
-    <br>
-    yii2-tree-manager
-    <hr>
-    <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=DTP3NZQ6G2AYU"
-       title="Donate via Paypal" target="_blank">
-        <img src="http://kartik-v.github.io/bootstrap-fileinput-samples/samples/donate.png" alt="Donate"/>
-    </a>
-</h1>
+yii2-tree-manager
+=================
 
 [![Stable Version](https://poser.pugx.org/kartik-v/yii2-tree-manager/v/stable)](https://packagist.org/packages/kartik-v/yii2-tree-manager)
 [![Unstable Version](https://poser.pugx.org/kartik-v/yii2-tree-manager/v/unstable)](https://packagist.org/packages/kartik-v/yii2-tree-manager)
@@ -58,7 +48,7 @@ The following important PHP classes are available with this module:
 6. **kartik\tree\controllers\NodeController:** _Controller_, the controller actions that manages the editing of each node for create, update, delete, or reorder (move).
 
 ## Demo
-You can see detailed [documentation](http://demos.krajee.com/tree-manager) and [TreeView demonstration](http://demos.krajee.com/tree-manager-demo/treeview) or [TreeViewInput demonstration](http://demos.krajee.com/tree-manager-demo/tree-view-input) on usage of the extension.
+You can see detailed [documentation](http://demos.krajee.com/tree-manager) and [TreeView demonstration](http://demos.krajee.com/tree-manager-demo/treeview) or [TreeViewInput demonstration](http://demos.krajee.com/tree-manager-demo/treeview-input) on usage of the extension.
 
 ## Installation
 
@@ -91,7 +81,7 @@ Create your database table to store the tree structure. You can do it in one of 
 You can run the migrations script provided to create the database structure from your yii programming console:
 
 ```
-php yii migrate/up --migrationPath=@vendor/kartik-v/yii2-tree-manager/src/migrations
+php yii migrate/up --migrationPath=@vendor/kartik-v/yii2-tree-manager/migrations
 ```
 
 #### Option 2: Executing SQL script
@@ -199,4 +189,4 @@ echo TreeViewInput::widget([
 
 ## License
 
-**yii2-tree-manager** is released under the BSD-3-Clause License. See the bundled `LICENSE.md` for details.
+**yii2-tree-manager** is released under the BSD 3-Clause License. See the bundled `LICENSE.md` for details.

@@ -1,60 +1,7 @@
 Change Log: `yii2-tree-manager`
 ===============================
 
-## Version 1.1.2
-
-**Date:** 13-Mar-2019
-
-- (enh #244): Correct hidden css to use `BS_HIDE` within `bsCssMap`.
-- (enh #240): Rename events triggered via jquery to start with `treeview:`.
-- (enh #239): Allow CSS class to hide elements to be configurable (for BS 3.x / 4.x). New property `hideCssClass`.
-- (enh #238): Add Chinese Translations.
-
-## Version 1.1.1
-
-**Date:** 29-Nov-2018
-
-- (enh #232): Correct migration path in documentation.
-- (enh #228): Correct parsing and sending of `nodeViewParams`.
-- (enh #223): Better styling of node tree.
-- (enh #222): Add German Translations.
-- (bug #221): Correct node view form tag.
-- Better sharing of `noNodesMessage` setting during tree manage.
-
-## Version 1.1.0
-
-**Date:** 03-Oct-2018
-
-- (bug #217, bug #219, enh #220): Enhance tree management for root level additions.
-- (bug #212): Correct icon list parsing for node.
-- (enh #210): Correct Russian Translations.
-- Correct icons initialization for BS3 Font Awesome.
-
-## Version 1.0.9
-
-**Date:** 13-Sep-2018
-
-- (enh #206): Enhancements to support Bootstrap 4.x.
-- (enh #205): Enhance data hashing and security via a separate `TreeSecurity` helper class (BC Breaking).
-- (enh #203): Update Russian Translations.
-- (enh #202): Enhance node title to be configurable in messages.
-- (bug #200): Correct validation for `TreeView::allowNewRoots`.
-- (enh #198): New property `TreeView::nodeButtonLabels` to configure submit and reset button icons/labels.
-- (enh #197): New database field `child-allowed` to control children being added for certain nodes.
-- Move source code to `src` folder as per yii standards.
-- (enh #196): New property `TreeView::nodeViewParams` for setting additional (or overriding) parameters to the `nodeView`.
-- (bug #192): Correct minified JS library `kv-tree.min.js`.
-- (enh #190): Simplify `treeEncryptSalt` parsing without using session dependencies.
-- (enh #188): Enhance node manipulation jquery events to be prevented/abandoned.
-- (bug #185): Correct TreeTrait data structure extraction.
-- (enh #183): Enhance `NodeController` to perform safe extraction of post parameters.
-- (enh #180): New property `TreeView::showNameAttribute` to hide/show name attribute in form.
-- (bug #179): Validate breadcrumbs depth more correctly.
-- (enh #178): Topmost root node display enhancements.
-- (enh #172): Update Russian Translations.
-- (enh #121): Pass yii CSRF parameters to ajax requests to prevent 400 errors.
-
-## Version 1.0.9
+## Version 1.0.8
 
 **Date:** 29-Apr-2017
 
@@ -69,7 +16,6 @@ Change Log: `yii2-tree-manager`
 - (enh #162): Update Italian Translations.
 - (enh #161): Update Italian Translations.
 - (bug #160): Correct key attribute usage in `TreeTrait::removeNode`.
-- (bug #64): Correct `VIEW_PART_5` rendering.
 
 ## Version 1.0.7
 
