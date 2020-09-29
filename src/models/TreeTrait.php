@@ -1,21 +1,28 @@
 <?php
 
 /**
- * @copyright Copyright &copy; Kartik Visweswaran, Krajee.com, 2015 - 2019
+ * Aria S.p.A.
+ * OPEN 2.0
+ *
+ *
+ * @package    Open20Package
+ * @category   CategoryName
+ */
+
+/**
+ * @copyright Copyright &copy; Kartik Visweswaran, Krajee.com, 2015 - 2017
  * @package   yii2-tree-manager
- * @version   1.1.3
+ * @version   1.0.8
  */
 
 namespace kartik\tree\models;
 
 use creocoder\nestedsets\NestedSetsBehavior;
-use kartik\tree\Module;
 use kartik\tree\TreeView;
 use Yii;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Html;
 use yii\helpers\HtmlPurifier;
-use yii\base\InvalidConfigException;
 
 /**
  * Trait that must be used by the Tree model
@@ -38,7 +45,6 @@ trait TreeTrait
         'movable_l',
         'removable',
         'removable_all',
-        'child_allowed',
     ];
 
     /**
@@ -66,7 +72,7 @@ trait TreeTrait
     public static function find()
     {
         /** @noinspection PhpUndefinedFieldInspection */
-        $treeQuery = isset(self::$treeQueryClass) ? self::$treeQueryClass : TreeQuery::class;
+        $treeQuery = isset(self::$treeQueryClass) ? self::$treeQueryClass : TreeQuery::classname();
         return new $treeQuery(get_called_class());
     }
 
@@ -76,7 +82,7 @@ trait TreeTrait
     public static function createQuery()
     {
         /** @noinspection PhpUndefinedFieldInspection */
-        $treeQuery = isset(self::$treeQueryClass) ? self::$treeQueryClass : TreeQuery::class;
+        $treeQuery = isset(self::$treeQueryClass) ? self::$treeQueryClass : TreeQuery::classname();
         return new $treeQuery(['modelClass' => get_called_class()]);
     }
 
@@ -85,11 +91,8 @@ trait TreeTrait
      */
     public function behaviors()
     {
-        /**
-         * @var Module $module
-         */
         $module = TreeView::module();
-        $settings = ['class' => NestedSetsBehavior::class] + $module->treeStructure;
+        $settings = ['class' => NestedSetsBehavior::className()] + $module->treeStructure;
         return empty($module->treeBehaviorName) ? [$settings] : [$module->treeBehaviorName => $settings];
     }
 
@@ -110,15 +113,15 @@ trait TreeTrait
     public function rules()
     {
         /**
-         * @var Module $module
+         * @var Tree $this
          */
         $module = TreeView::module();
         $nameAttribute = $iconAttribute = $iconTypeAttribute = null;
         extract($module->dataStructure);
-        $attributes = array_merge([$nameAttribute, $iconAttribute, $iconTypeAttribute], static::$boolAttribs);
+        $attribs = array_merge([$nameAttribute, $iconAttribute, $iconTypeAttribute], static::$boolAttribs);
         $rules = [
             [[$nameAttribute], 'required'],
-            [$attributes, 'safe'],
+            [$attribs, 'safe'],
         ];
         if ($this->encodeNodeNames) {
             $rules[] = [
@@ -148,7 +151,6 @@ trait TreeTrait
     {
         /**
          * @var Tree $this
-         * @var Module $module
          */
         $module = TreeView::module();
         $iconTypeAttribute = null;
@@ -254,33 +256,21 @@ trait TreeTrait
     }
 
     /**
-     * Validate if the node can have children
-     *
-     * @return boolean
-     */
-    public function isChildAllowed()
-    {
-        return $this->parse('child_allowed');
-    }
-
-    /**
      * Activates a node (for undoing a soft deletion scenario)
      *
      * @param boolean $currNode whether to update the current node value also
      *
      * @return boolean status of activation
-     * @throws InvalidConfigException
      */
     public function activateNode($currNode = true)
     {
         /**
-         * @var Module $module
+         * @var Tree $this
          */
         $this->nodeActivationErrors = [];
         $module = TreeView::module();
-        extract($module->dataStructure);
+        extract($module->treeStructure);
         if ($this->isRemovableAll()) {
-            /** @noinspection PhpUndefinedMethodInspection */
             $children = $this->children()->all();
             foreach ($children as $child) {
                 /**
@@ -318,23 +308,21 @@ trait TreeTrait
      * Removes a node
      *
      * @param boolean $softDelete whether to soft delete or hard delete
-     * @param boolean $currNode whether to update the current node value also
+     * @param boolean $currNode   whether to update the current node value also
      *
      * @return boolean status of activation/inactivation
-     * @throws InvalidConfigException
      */
     public function removeNode($softDelete = true, $currNode = true)
     {
         /**
-         * @var Module $module
+         * @var Tree $this
          * @var Tree $child
          */
         if ($softDelete) {
             $this->nodeRemovalErrors = [];
             $module = TreeView::module();
-            extract($module->dataStructure);
+            extract($module->treeStructure);
             if ($this->isRemovableAll()) {
-                /** @noinspection PhpUndefinedMethodInspection */
                 $children = $this->children()->all();
                 foreach ($children as $child) {
                     $child->active = false;
@@ -364,7 +352,6 @@ trait TreeTrait
             }
             return true;
         } else {
-            /** @noinspection PhpUndefinedMethodInspection */
             return $this->removable_all || $this->isRoot() && $this->children()->count() == 0 ?
                 $this->deleteWithChildren() : $this->delete();
         }
@@ -375,9 +362,6 @@ trait TreeTrait
      */
     public function attributeLabels()
     {
-        /**
-         * @var Module $module
-         */
         $module = TreeView::module();
         $keyAttribute = $nameAttribute = $leftAttribute = $rightAttribute = $depthAttribute = null;
         $treeAttribute = $iconAttribute = $iconTypeAttribute = null;
@@ -402,7 +386,6 @@ trait TreeTrait
             'movable_r' => Yii::t('kvtree', 'Movable Right'),
             'removable' => Yii::t('kvtree', 'Removable'),
             'removable_all' => Yii::t('kvtree', 'Removable (with children)'),
-            'child_allowed' => Yii::t('kvtree', 'Child Allowed'),
         ];
         if (!$treeAttribute) {
             $labels[$treeAttribute] = Yii::t('kvtree', 'Root');
@@ -413,18 +396,17 @@ trait TreeTrait
     /**
      * Generate and return the breadcrumbs for the node.
      *
-     * @param integer $depth the breadcrumbs parent depth
-     * @param string $glue the pattern to separate the breadcrumbs
-     * @param string $currCss the CSS class to be set for current node
-     * @param string $new the name to be displayed for a new node
+     * @param integer $depth   the breadcrumbs parent depth
+     * @param string  $glue    the pattern to separate the breadcrumbs
+     * @param string  $currCss the CSS class to be set for current node
+     * @param string  $new     the name to be displayed for a new node
      *
      * @return string the parsed breadcrumbs
-     * @throws InvalidConfigException
      */
     public function getBreadcrumbs($depth = 1, $glue = ' &raquo; ', $currCss = 'kv-crumb-active', $new = 'Untitled')
     {
         /**
-         * @var Module $module
+         * @var Tree $this
          */
         if ($this->isNewRecord || empty($this)) {
             return $currCss ? Html::tag('span', $new, ['class' => $currCss]) : $new;
@@ -432,7 +414,6 @@ trait TreeTrait
         $depth = empty($depth) ? null : intval($depth);
         $module = TreeView::module();
         $nameAttribute = ArrayHelper::getValue($module->dataStructure, 'nameAttribute', 'name');
-        /** @noinspection PhpUndefinedMethodInspection */
         $crumbNodes = $depth === null ? $this->parents()->all() : $this->parents($depth - 1)->all();
         $crumbNodes[] = $this;
         $i = 1;
@@ -453,7 +434,7 @@ trait TreeTrait
      * Sets default value of a model attribute
      *
      * @param string $attr the attribute name
-     * @param mixed $val the default value
+     * @param mixed  $val  the default value
      */
     protected function setDefault($attr, $val)
     {
@@ -465,8 +446,8 @@ trait TreeTrait
     /**
      * Parses an attribute value if set - else returns the default
      *
-     * @param string $attr the attribute name
-     * @param mixed $default the attribute default value
+     * @param string $attr    the attribute name
+     * @param mixed  $default the attribute default value
      *
      * @return mixed
      */

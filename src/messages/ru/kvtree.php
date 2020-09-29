@@ -1,4 +1,13 @@
 <?php
+
+/**
+ * Aria S.p.A.
+ * OPEN 2.0
+ *
+ *
+ * @package    Open20Package
+ * @category   CategoryName
+ */
 /**
  * Message translations.
  *
@@ -18,36 +27,31 @@
  */
 return [
     '<h4>Operation Disallowed</h4><hr>Invalid request signature detected during tree data <b>{action}</b> action! Please refresh the page and retry.{params}' => '',
-    'Cannot create {node}. Parent node is not saved or is invalid.' => 'Нельзя создать {node}. Родительский {node} не сохранен',
-    'Cannot move root level {nodes} before or after other root level {nodes}.' => 'Движение корневых {nodes} между другими корневыми {nodes} невозможно',
-    'No valid {nodes} are available for display. Use toolbar buttons to add {nodes}.' => 'Нет доступных {nodes} для отображения. Используйте тулбар для добавлния новых {nodes}',
-    'You cannot add children under this {node}.' => 'Вы не можете добавить дочерний элемент в корневой {node} ',
-    'Cannot create {node}. Parent {node} is not saved or is invalid.' => '@@Нельзя создать {node}. Родительский {node} не сохранен@@',
-    'No valid tree {nodes} are available for display. Use toolbar buttons to add tree {nodes}.' => '@@Нет доступных {nodes} дерева для отображения. Используйте кнопки на панели инструментов, чтобы добавить {nodes}.@@',
+    'Error removing the node. Please try again later.' => '',
+    'The selected node cannot be moved.' => '',
     '(new)' => '(новый)',
     'Active' => 'Активный',
     'Add new' => 'Добавить новый',
     'Add new root' => 'Добавить новый в корень',
     'Admin Settings' => 'Настройки администратора',
-    'Already at bottom-most {node} in the hierarchy.' => '{node} уже находится в самом низу иерархии',
-    'Already at left-most {node} in the hierarchy.' => '{node} уже находится на самом верхнем уровне иерархии',
-    'Already at right-most {node} in the hierarchy.' => '{node} уже находится в самом последнем уровне иерархии',
-    'Already at top-most {node} in the hierarchy.' => '{node} уже находится в самом верху иерархии',
-    'Are you sure you want to remove this {node}?' => 'Вы действительно хотите удалить {node}?',
-    'Cannot move this {node} as the {node} details are not saved yet.' => 'Нельзя переместить {node} пока вы его не сохранили',
-    'Child Allowed' => 'Дочерние элементы разрешены',
+    'Already at bottom-most node in the hierarchy.' => 'Элемент уже находится в самом низу иерархии',
+    'Already at left-most node in the hierarchy.' => 'Элемент уже находится на самом верхнем уровне иерархии',
+    'Already at right-most node in the hierarchy.' => 'Элемент уже находится в самой последнем уровне иерархии',
+    'Already at top-most node in the hierarchy.' => 'Элемент уже находится в самом вверху иерархии',
+    'Are you sure you want to remove this node?' => 'Вы действительно хотите удалить элемент?',
+    'Cannot create node. Parent node is not saved or is invalid.' => 'Нельзя создать элемент. Родительский элемент не сохранен',
+    'Cannot move this node as the node details are not saved yet.' => 'Нельзя переместить элемент пока вы его не сохранили',
     'Clear search results' => 'Очистить результаты поиска',
     'Collapsed' => 'Свернутый',
     'Default' => 'По умолчанию',
     'Delete' => 'Удалить',
     'Depth' => 'Глубина',
     'Disabled' => 'Выключенный',
-    'Error removing the {node}. Please try again later.' => 'Ошибка перемещения {node}. Пожалуйста попробуйте позже.',
-    'Error while creating the {node}. Please try again later.' => 'Ошибка при создании {node}. Пожалуйста, повторите попытку позже.',
-    'Error while moving the {node}. Please try again later.' => 'Ошибка при перемещении {node}. Пожалуйста, повторите попытку позже.',
-    'Error while removing the {node}. Please try again later.' => 'Ошибка при удалении {node}. Пожалуйста, повторите попытку позже.',
-    'Error while saving the {node}. Please try again later.' => 'Ошибка при сохранении узел. Пожалуйста, повторите попытку позже.',
-    'Error while viewing the {node}. Please try again later.' => 'Ошибка при просмотре {node}. Пожалуйста, повторите попытку позже.',
+    'Error while creating the node. Please try again later.' => 'Ошибка при создании узла. Пожалуйста, повторите попытку позже.',
+    'Error while moving the node. Please try again later.' => 'Ошибка при перемещении узла. Пожалуйста, повторите попытку позже.',
+    'Error while removing the node. Please try again later.' => 'Ошибка при удалении узла. Пожалуйста, повторите попытку позже.',
+    'Error while saving the node. Please try again later.' => 'Ошибка при сохранении узел. Пожалуйста, повторите попытку позже.',
+    'Error while viewing the node. Please try again later.' => 'Ошибка при просмотре узла. Пожалуйста, повторите попытку позже.',
     'ID' => 'ИД',
     'Icon' => 'Иконка',
     'Icon Type' => 'Тип иконки',
@@ -61,6 +65,8 @@ return [
     'Move Right' => 'Переместить вправо',
     'Move Up' => 'Переместить вверх',
     'Name' => 'Название',
+    'No valid tree nodes are available for display. Use toolbar buttons to add tree nodes.' => 'Нет доступных элементов дерева для отображения. Используйте кнопки на панели инструментов, чтобы добавить элементы.',
+    'Node # {id} - \'{name}\': {error}' => 'Элемент № {id} - \'{name}\': {error}',
     'Read Only' => 'Только чтение',
     'Refresh' => 'Обновить',
     'Removable' => 'Удаляемый',
@@ -69,20 +75,16 @@ return [
     'Right' => 'Вправо',
     'Root' => 'Корень',
     'Save' => 'Сохранить',
-    'Saved the {node} details successfully.' => 'Данные {node} успешно сохранены',
+    'Saved the node details successfully.' => 'Данные элемента успешно сохранены',
     'Search...' => 'Поиск...',
-    'Select a {node} by clicking on one of the tree items.' => 'Выберите {node}, нажав на один из дерева.',
+    'Select a node by clicking on one of the tree items.' => 'Выберите элемент, нажав на один из дерева.',
     'Select...' => 'Выбрать...',
     'Selected' => 'Выбираемый',
-    'The selected {node} cannot be moved.' => 'Этот выделенный {node} нельзя перенести.',
-    'The untitled {node} was removed.' => '{node}ы без названия были удалены',
-    'The {node} was moved successfully.' => '{node} успешно перемещен.',
-    'The {node} was removed successfully.' => '{node} успешно удален.',
-    'The {node} was successfully created.' => '{node} успешно создан.',
+    'The node was moved successfully.' => 'Элемент успешно перемещен.',
+    'The node was removed successfully.' => 'Элемент успешно удален.',
+    'The node was successfully created.' => 'Элемент успешно создан.',
+    'The untitled node was removed.' => 'Элементы без названия были удалены',
     'This operation is not allowed.' => 'Операция не разрешена',
     'Untitled' => 'Без названия',
     'Visible' => 'Видимый',
-    'node' => 'Элемент',
-    'nodes' => 'Элементов',
-    '{node} # {id} - \'{name}\': {error}' => '{node} № {id} - \'{name}\': {error}',
 ];

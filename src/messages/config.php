@@ -1,4 +1,13 @@
 <?php
+
+/**
+ * Aria S.p.A.
+ * OPEN 2.0
+ *
+ *
+ * @package    Open20Package
+ * @category   CategoryName
+ */
 return [
     // string, required, root directory of all source files
     'sourcePath' => __DIR__ . DIRECTORY_SEPARATOR . '..',

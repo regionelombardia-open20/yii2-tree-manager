@@ -1,9 +1,18 @@
 <?php
 
 /**
- * @copyright Copyright &copy; Kartik Visweswaran, Krajee.com, 2015 - 2019
+ * Aria S.p.A.
+ * OPEN 2.0
+ *
+ *
+ * @package    Open20Package
+ * @category   CategoryName
+ */
+
+/**
+ * @copyright Copyright &copy; Kartik Visweswaran, Krajee.com, 2015 - 2017
  * @package   yii2-tree-manager
- * @version   1.1.3
+ * @version   1.0.8
  */
 
 namespace kartik\tree;

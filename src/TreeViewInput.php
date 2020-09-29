@@ -1,9 +1,18 @@
 <?php
 
 /**
- * @copyright Copyright &copy; Kartik Visweswaran, Krajee.com, 2015 - 2019
+ * Aria S.p.A.
+ * OPEN 2.0
+ *
+ *
+ * @package    Open20Package
+ * @category   CategoryName
+ */
+
+/**
+ * @copyright Copyright &copy; Kartik Visweswaran, Krajee.com, 2015 - 2017
  * @package   yii2-tree-manager
- * @version   1.1.3
+ * @version   1.0.8
  */
 
 namespace kartik\tree;
@@ -24,6 +33,11 @@ use yii\web\View;
  */
 class TreeViewInput extends TreeView
 {
+    /**
+     * Caret rendered for the dropdown toggle
+     */
+    const CARET = '<div class="kv-carets"><span class="caret kv-dn"></span><span class="caret kv-up"></span></div>';
+
     /**
      * @var Model the data model that this widget is associated with.
      */
@@ -68,15 +82,14 @@ class TreeViewInput extends TreeView
      *   - `placeholder`: string, defaults to `Select...`
      * - `dropdown`: _array_, the HTML attributes for the dropdown tree view menu.
      * - `options`: _array_, the HTML attributes for the wrapper container
-     * - `caret`: _string_, the markup for rendering the dropdown indicator for up and down. Defaults
-     *    to [[_defaultCaret]].
+     * - `caret`: _string_, the markup for rendering the dropdown indicator for up and down. Defaults to [[CARET]].
      */
     public $dropdownConfig = [];
 
     /**
-     * @var string default caret markup rendered for the dropdown toggle
+     * @var array the HTML attributes for the input that will store the selected nodes for the widget
      */
-    protected $_defaultCaret;
+    public $options = ['class' => 'form-control hide'];
 
     /**
      * @var string the placeholder for the dropdown input
@@ -98,14 +111,6 @@ class TreeViewInput extends TreeView
         }
         $this->showCheckbox = true;
         $css = 'kv-tree-input-widget';
-        if ($this->isBs4()) {
-            $carets = '<span class="kv-dn"><i class="fas fa-caret-down"></i></span>' .
-                '<span class="kv-up"><i class="fas fa-caret-up"></i></span>';
-        } else {
-            $carets = '<span class="kv-dn"><i class="caret"></i></span>' .
-                '<span class="kv-up"><i class="caret"></i></span>';
-        }
-        $this->_defaultCaret = Html::tag('div', $carets, ['class' => 'kv-carets']);
         if (!$this->showToolbar) {
             $css .= ' kv-tree-nofooter';
         }
@@ -162,7 +167,7 @@ class TreeViewInput extends TreeView
             'aria-expanded' => 'false',
         ], $input);
         if (empty($config['caret'])) {
-            $config['caret'] = $this->_defaultCaret;
+            $config['caret'] = self::CARET;
         }
         $config['options'] = $options;
         $this->dropdownConfig = $config;
@@ -257,7 +262,7 @@ class TreeViewInput extends TreeView
             'placeholder' => $this->_placeholder,
             'value' => empty($this->value) ? '' : $this->value,
             'caret' => $this->dropdownConfig['caret'],
-            'autoCloseOnSelect' => $this->autoCloseOnSelect,
+            'autoCloseOnSelect' => $this->autoCloseOnSelect
         ]);
         $var = $name . '_' . hash('crc32', $opts);
         $this->options['data-krajee-' . $name] = $var;

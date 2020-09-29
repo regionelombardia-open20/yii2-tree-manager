@@ -1,4 +1,13 @@
 <?php
+
+/**
+ * Aria S.p.A.
+ * OPEN 2.0
+ *
+ *
+ * @package    Open20Package
+ * @category   CategoryName
+ */
 /**
  * Message translations.
  *
@@ -18,36 +27,30 @@
  */
 return [
     '<h4>Operation Disallowed</h4><hr>Invalid request signature detected during tree data <b>{action}</b> action! Please refresh the page and retry.{params}' => '',
-    'Cannot create {node}. Parent node is not saved or is invalid.' => '',
-    'Cannot move root level {nodes} before or after other root level {nodes}.' => '',
-    'Child Allowed' => '',
-    'No valid {nodes} are available for display. Use toolbar buttons to add {nodes}.' => '',
-    'You cannot add children under this {node}.' => '',
-    'Cannot create {node}. Parent {node} is not saved or is invalid.' => '@@Impossible de créer le {node}. Le {node} parent n\'est pas enregistré ou invalide@@',
-    'No valid tree {nodes} are available for display. Use toolbar buttons to add tree {nodes}.' => '@@Aucun {node} d\'arborescence disponible. Utilisez les boutons pour ajouter un {node}.@@',
     '(new)' => '(nouveau)',
     'Active' => 'Actif',
     'Add new' => 'Ajouter',
     'Add new root' => 'Ajouter une racine',
     'Admin Settings' => 'Paramètres administrateur',
-    'Already at bottom-most {node} in the hierarchy.' => 'Déjà au plus bas de l\'arborescence',
-    'Already at left-most {node} in the hierarchy.' => 'Déjà eu plus à gauche de l\'arborescence',
-    'Already at right-most {node} in the hierarchy.' => 'Déjà au plus à droite de l\'arborescence',
-    'Already at top-most {node} in the hierarchy.' => 'Déjà au plus haut de l\'arborescence',
-    'Are you sure you want to remove this {node}?' => 'Êtes-vous sûr de vouloir supprimer ce {node} ?',
-    'Cannot move this {node} as the {node} details are not saved yet.' => 'Impossible de déplacer ce {node} car les informations du {node} ne sont pas enregistrées.',
+    'Already at bottom-most node in the hierarchy.' => 'Déjà au plus bas de l\'arborescence',
+    'Already at left-most node in the hierarchy.' => 'Déjà eu plus à gauche de l\'arborescence',
+    'Already at right-most node in the hierarchy.' => 'Déjà au plus à droite de l\'arborescence',
+    'Already at top-most node in the hierarchy.' => 'Déjà au plus haut de l\'arborescence',
+    'Are you sure you want to remove this node?' => 'Êtes-vous sûr de vouloir supprimer ce noeud ?',
+    'Cannot create node. Parent node is not saved or is invalid.' => 'Impossible de créer le noeud. Le noeud parent n\'est pas enregistré ou invalide',
+    'Cannot move this node as the node details are not saved yet.' => 'Impossible de déplacer ce noeud car les informations du noeud ne sont pas enregistrées.',
     'Clear search results' => 'Vider les résultats de recherche',
     'Collapsed' => 'Replié',
     'Default' => 'Défaut',
     'Delete' => 'Supprimer',
     'Depth' => 'Profondeur',
     'Disabled' => 'Désactivé',
-    'Error removing the {node}. Please try again later.' => 'Erreur à la suppression du {node}. Réessayez plus tard.',
-    'Error while creating the {node}. Please try again later.' => 'Erreur à la création du {node}. Réessayez plus tard.',
-    'Error while moving the {node}. Please try again later.' => 'Erreur à la création du {node}. Réessayez plus tard.',
-    'Error while removing the {node}. Please try again later.' => 'Erreur à la suppression du {node}. Réessayez plus tard.',
-    'Error while saving the {node}. Please try again later.' => 'Erreur à l\'enregistrement du {node}. Réessayez plus tard.',
-    'Error while viewing the {node}. Please try again later.' => 'Erreur à la visualisation du {node}. Réessayez plus tard.',
+    'Error removing the node. Please try again later.' => 'Erreur à la suppression du noeud. Réessayez plus tard.',
+    'Error while creating the node. Please try again later.' => 'Erreur à la création du noeud. Réessayez plus tard.',
+    'Error while moving the node. Please try again later.' => 'Erreur à la création du noeud. Réessayez plus tard.',
+    'Error while removing the node. Please try again later.' => 'Erreur à la suppression du noeud. Réessayez plus tard.',
+    'Error while saving the node. Please try again later.' => 'Erreur à l\'enregistrement du noeud. Réessayez plus tard.',
+    'Error while viewing the node. Please try again later.' => 'Erreur à la visualisation du noeud. Réessayez plus tard.',
     'ID' => 'ID',
     'Icon' => 'Icône',
     'Icon Type' => 'Type d\'icône',
@@ -61,6 +64,8 @@ return [
     'Move Right' => 'Déplacer vers la droite',
     'Move Up' => 'Déplacer vers le haut',
     'Name' => 'Nom',
+    'No valid tree nodes are available for display. Use toolbar buttons to add tree nodes.' => 'Aucun noeud d\'arborescence disponible. Utilisez les boutons pour ajouter un noeud.',
+    'Node # {id} - \'{name}\': {error}' => 'Noeud # {id} - \'{name}\' : {error}',
     'Read Only' => 'Lecture seule',
     'Refresh' => 'Rafraîchir',
     'Removable' => 'Supprimable',
@@ -69,20 +74,17 @@ return [
     'Right' => 'Droite',
     'Root' => 'Racine',
     'Save' => 'Enregistrer',
-    'Saved the {node} details successfully.' => 'Enregistrement réussi des informations du {node}.',
+    'Saved the node details successfully.' => 'Enregistrement réussi des informations du noeud.',
     'Search...' => 'Rechercher...',
-    'Select a {node} by clicking on one of the tree items.' => 'Sélectionner un {node} en cliquant sur l\'un des items de l\'arborescence',
+    'Select a node by clicking on one of the tree items.' => 'Sélectionner un noeud en cliquant sur l\'un des items de l\'arborescence',
     'Select...' => 'Sélectionner...',
     'Selected' => 'Sélectionné',
-    'The selected {node} cannot be moved.' => 'Le {node} sélectionné ne peut pas être déplacé.',
-    'The untitled {node} was removed.' => 'Le {node} sans titre a été déplacé.',
-    'The {node} was moved successfully.' => 'Le {node} a été déplacé avec succès.',
-    'The {node} was removed successfully.' => 'Le {node} a été supprimé avec succès.',
-    'The {node} was successfully created.' => 'Le {node} a été créé avec succès.',
+    'The node was moved successfully.' => 'Le noeud a été déplacé avec succès.',
+    'The node was removed successfully.' => 'Le noeud a été supprimé avec succès.',
+    'The node was successfully created.' => 'Le noeud a été créé avec succès.',
+    'The selected node cannot be moved.' => 'Le noeud sélectionné ne peut pas être déplacé.',
+    'The untitled node was removed.' => 'Le noeud sans titre a été déplacé.',
     'This operation is not allowed.' => 'L\'opération n\'est pas autorisée',
     'Untitled' => 'Sans titre',
     'Visible' => 'Visible',
-    'node' => 'noeud',
-    'nodes' => 'noeud',
-    '{node} # {id} - \'{name}\': {error}' => '{node} # {id} - \'{name}\' : {error}',
 ];

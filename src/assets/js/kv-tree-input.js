@@ -1,12 +1,12 @@
 /*!
- * @copyright Copyright &copy; Kartik Visweswaran, Krajee.com, 2015 - 2019
+ * @copyright Copyright &copy; Kartik Visweswaran, Krajee.com, 2015 - 2017
  * @package yii2-tree-manager
- * @version 1.1.3
+ * @version 1.0.8
  *
  * Tree View Input Widget Management Script
  *
  * Author: Kartik Visweswaran
- * Copyright: 2015 - 2019, Kartik Visweswaran, Krajee.com
+ * Copyright: 2015 - 2017, Kartik Visweswaran, Krajee.com
  * For more JQuery plugins visit http://plugins.krajee.com
  * For more Yii related demos visit http://demos.krajee.com
  */
@@ -73,7 +73,7 @@
             self.$dropdown.on('click', function (e) {
                 e.stopPropagation();
             });
-            self.$element.on('treeview:change', function (event, keys, desc) {
+            self.$element.on('treeview.change', function (event, keys, desc) {
                 self.setInput(desc.split(','));
                 if (self.autoCloseOnSelect) {
                     self.$input.closest('.kv-tree-dropdown-container').removeClass('open');

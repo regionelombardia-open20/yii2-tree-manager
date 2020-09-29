@@ -1,9 +1,18 @@
 <?php
 
 /**
- * @copyright Copyright &copy; Kartik Visweswaran, Krajee.com, 2015 - 2019
+ * Aria S.p.A.
+ * OPEN 2.0
+ *
+ *
+ * @package    Open20Package
+ * @category   CategoryName
+ */
+
+/**
+ * @copyright Copyright &copy; Kartik Visweswaran, Krajee.com, 2015 - 2017
  * @package   yii2-tree-manager
- * @version   1.1.3
+ * @version   1.0.8
  */
 
 namespace kartik\tree\models;
@@ -13,13 +22,13 @@ use yii\db\ActiveRecord;
 /**
  * This is the base model class for the nested set tree structure
  *
- * @property string $id
- * @property string $root
- * @property string $lft
- * @property string $rgt
+ * @property string  $id
+ * @property string  $root
+ * @property string  $lft
+ * @property string  $rgt
  * @property integer $lvl
- * @property string $name
- * @property string $icon
+ * @property string  $name
+ * @property string  $icon
  * @property integer $icon_type
  * @property boolean $active
  * @property boolean $selected

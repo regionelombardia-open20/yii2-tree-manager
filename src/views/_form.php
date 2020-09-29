@@ -1,8 +1,17 @@
 <?php
+
 /**
- * @copyright Copyright &copy; Kartik Visweswaran, Krajee.com, 2015 - 2019
+ * Aria S.p.A.
+ * OPEN 2.0
+ *
+ *
+ * @package    Open20Package
+ * @category   CategoryName
+ */
+/**
+ * @copyright Copyright &copy; Kartik Visweswaran, Krajee.com, 2015 - 2017
  * @package   yii2-tree-manager
- * @version   1.1.3
+ * @version   1.0.8
  */
 
 use kartik\form\ActiveForm;
@@ -11,44 +20,33 @@ use kartik\tree\TreeView;
 use kartik\tree\models\Tree;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Html;
+use yii\helpers\Json;
 use yii\web\View;
 
 /**
- * @var View $this
- * @var Tree $node
+ * @var View       $this
+ * @var Tree       $node
  * @var ActiveForm $form
- * @var array $formOptions
- * @var string $keyAttribute
- * @var string $nameAttribute
- * @var string $iconAttribute
- * @var string $iconTypeAttribute
- * @var array|string $iconsList
- * @var string $formAction
- * @var array $breadcrumbs
- * @var array $nodeAddlViews
- * @var mixed $currUrl
- * @var boolean $isAdmin
- * @var boolean $showIDAttribute
- * @var boolean $showNameAttribute
- * @var boolean $showFormButtons
- * @var boolean $allowNewRoots
- * @var string $nodeSelected
- * @var string $nodeTitle
- * @var string $nodeTitlePlural
- * @var array $params
- * @var string $keyField
- * @var string $nodeView
- * @var string $nodeAddlViews
- * @var array $nodeViewButtonLabels
- * @var string $noNodesMessage
- * @var boolean $softDelete
- * @var string $modelClass
- * @var string $defaultBtnCss
- * @var string $treeManageHash
- * @var string $treeSaveHash
- * @var string $treeRemoveHash
- * @var string $treeMoveHash
- * @var string $hideCssClass
+ * @var array      $formOptions
+ * @var string     $keyAttribute
+ * @var string     $nameAttribute
+ * @var string     $iconAttribute
+ * @var string     $iconTypeAttribute
+ * @var string     $iconsList
+ * @var string     $action
+ * @var array      $breadcrumbs
+ * @var array      $nodeAddlViews
+ * @var mixed      $currUrl
+ * @var boolean    $showIDAttribute
+ * @var boolean    $showFormButtons
+ * @var boolean    $allowNewRoots
+ * @var string     $nodeSelected
+ * @var array      $params
+ * @var string     $keyField
+ * @var string     $nodeView
+ * @var string     $noNodesMessage
+ * @var boolean    $softDelete
+ * @var string     $modelClass
  */
 ?>
 
@@ -60,28 +58,26 @@ use yii\web\View;
 <?php
 extract($params);
 $session = Yii::$app->has('session') ? Yii::$app->session : null;
-$resetTitle = Yii::t('kvtree', 'Reset');
-$submitTitle = Yii::t('kvtree', 'Save');
 
 // parse parent key
-if ($node->isNewRecord) {
-    $parentKey = empty($parentKey) ? '' : $parentKey;
+if ($noNodesMessage) {
+    $parentKey = '';
 } elseif (empty($parentKey)) {
     $parent = $node->parents(1)->one();
     $parentKey = empty($parent) ? '' : Html::getAttributeValue($parent, $keyAttribute);
 }
 
-/** @var Module $module */
+// tree manager module
 $module = TreeView::module();
 
 // active form instance
-$form = ActiveForm::begin(['action' => $formAction, 'options' => $formOptions]);
+$form = ActiveForm::begin(['action' => $action, 'options' => $formOptions]);
 
 // helper function to show alert
-$showAlert = function ($type, $body = '', $hide = true) use($hideCssClass) {
+$showAlert = function ($type, $body = '', $hide = true) {
     $class = "alert alert-{$type}";
     if ($hide) {
-        $class .= ' ' . $hideCssClass;
+        $class .= ' hide';
     }
     return Html::tag('div', '<div>' . $body . '</div>', ['class' => $class]);
 };
@@ -95,17 +91,6 @@ $renderContent = function ($part) use ($nodeAddlViews, $params, $form) {
     $p['form'] = $form;
     return $this->render($nodeAddlViews[$part], $p);
 };
-
-// node identifier
-$id = $node->isNewRecord ? null : $node->$keyAttribute;
-// breadcrumbs
-if (array_key_exists('depth', $breadcrumbs) && $breadcrumbs['depth'] === null) {
-    $breadcrumbs['depth'] = '';
-} elseif (!empty($breadcrumbs['depth'])) {
-    $breadcrumbs['depth'] = (string)$breadcrumbs['depth'];
-}
-// icons list
-$icons = is_array($iconsList) ? array_values($iconsList) : $iconsList;
 ?>
 
 <?php
@@ -114,8 +99,6 @@ $icons = is_array($iconsList) ? array_values($iconsList) : $iconsList;
  * to set all these hidden inputs as defined below.
  */
 ?>
-<?= Html::hiddenInput('nodeTitle', $nodeTitle) ?>
-<?= Html::hiddenInput('nodeTitlePlural', $nodeTitlePlural) ?>
 <?= Html::hiddenInput('treeNodeModify', $node->isNewRecord) ?>
 <?= Html::hiddenInput('parentKey', $parentKey) ?>
 <?= Html::hiddenInput('currUrl', $currUrl) ?>
@@ -128,15 +111,39 @@ $icons = is_array($iconsList) ? array_values($iconsList) : $iconsList;
  * is mandatory to include this section below.
  */
 ?>
-<?= Html::hiddenInput('treeManageHash', $treeManageHash) ?>
-<?= Html::hiddenInput('treeRemoveHash', $treeRemoveHash) ?>
-<?= Html::hiddenInput('treeMoveHash', $treeMoveHash) ?>
+<?php
+$security = Yii::$app->security;
+$id = $node->isNewRecord ? null : $node->$keyAttribute;
+
+// save signature
+$dataToHash = !!$node->isNewRecord . $currUrl . $modelClass;
+echo Html::hiddenInput('treeSaveHash', $security->hashData($dataToHash, $module->treeEncryptSalt));
+
+// manage signature
+if (array_key_exists('depth', $breadcrumbs) && $breadcrumbs['depth'] === null) {
+    $breadcrumbs['depth'] = '';
+}
+$icons = is_array($iconsList) ? array_values($iconsList) : $iconsList;
+$dataToHash = $modelClass . !!$isAdmin . !!$softDelete . !!$showFormButtons . !!$showIDAttribute .
+    $currUrl . $nodeView . $nodeSelected . Json::encode($formOptions) .
+    Json::encode($nodeAddlViews) . Json::encode($icons) . Json::encode($breadcrumbs);
+echo Html::hiddenInput('treeManageHash', $security->hashData($dataToHash, $module->treeEncryptSalt));
+
+// remove signature
+$dataToHash = $modelClass . $softDelete;
+echo Html::hiddenInput('treeRemoveHash', $security->hashData($dataToHash, $module->treeEncryptSalt));
+
+// move signature
+$dataToHash = $modelClass . $allowNewRoots;
+echo Html::hiddenInput('treeMoveHash', $security->hashData($dataToHash, $module->treeEncryptSalt));
+?>
+
 <?php
 /**
  * BEGIN VALID NODE DISPLAY
  */
 ?>
-<?php if (!$node->isNewRecord || !empty($parentKey)): ?>
+<?php if (!$noNodesMessage): ?>
     <?php
     $isAdmin = ($isAdmin == true || $isAdmin === "true"); // admin mode flag
     $inputOpts = [];                                      // readonly/disabled input options for node
@@ -158,19 +165,17 @@ $icons = is_array($iconsList) ? array_values($iconsList) : $iconsList;
     /**
      * initialize for create or update
      */
-    $depth = ArrayHelper::getValue($breadcrumbs, 'depth', '');
-    $glue = ArrayHelper::getValue($breadcrumbs, 'glue', '');
-    $activeCss = ArrayHelper::getValue($breadcrumbs, 'activeCss', '');
-    $untitled = ArrayHelper::getValue($breadcrumbs, 'untitled', '');
+    $depth = ArrayHelper::getValue($breadcrumbs, 'depth');
+    $glue = ArrayHelper::getValue($breadcrumbs, 'glue');
+    $activeCss = ArrayHelper::getValue($breadcrumbs, 'activeCss');
+    $untitled = ArrayHelper::getValue($breadcrumbs, 'untitled');
     $name = $node->getBreadcrumbs($depth, $glue, $activeCss, $untitled);
     if ($node->isNewRecord && !empty($parentKey) && $parentKey !== TreeView::ROOT_KEY) {
         /**
          * @var Tree $modelClass
          * @var Tree $parent
          */
-        if (empty($depth)) {
-            $depth = null;
-        }
+        $depth = empty($breadcrumbsDepth) ? null : intval($breadcrumbsDepth) - 1;
         if ($depth === null || $depth > 0) {
             $parent = $modelClass::findOne($parentKey);
             $name = $parent->getBreadcrumbs($depth, $glue, null) . $glue . $name;
@@ -186,7 +191,6 @@ $icons = is_array($iconsList) ? array_values($iconsList) : $iconsList;
         $flagOptions['disabled'] = true;
     }
 
-    $nameField = $showNameAttribute ? $form->field($node, $nameAttribute)->textInput($inputOpts) : '';
     ?>
     <?php
     /**
@@ -195,15 +199,13 @@ $icons = is_array($iconsList) ? array_values($iconsList) : $iconsList;
     ?>
     <div class="kv-detail-heading">
         <?php if (empty($inputOpts['disabled']) || ($isAdmin && $showFormButtons)): ?>
-            <div class="float-right pull-right">
-                <?= Html::resetButton(
-                    ArrayHelper::getValue($nodeViewButtonLabels, 'reset', $resetTitle),
-                    ['class' => 'btn ' . $defaultBtnCss, 'title' => $resetTitle]
-                ) ?>
-                <?= Html::submitButton(
-                    ArrayHelper::getValue($nodeViewButtonLabels, 'submit', $submitTitle),
-                    ['class' => 'btn btn-primary', 'title' => $submitTitle]
-                ) ?>
+            <div class="pull-right">
+                <button type="reset" class="btn btn-default" title="<?= Yii::t('kvtree', 'Reset') ?>">
+                    <i class="glyphicon glyphicon-repeat"></i>
+                </button>
+                <button type="submit" class="btn btn-primary" title="<?= Yii::t('kvtree', 'Save') ?>">
+                    <i class="glyphicon glyphicon-floppy-disk"></i>
+                </button>
             </div>
         <?php endif; ?>
         <div class="kv-detail-crumbs"><?= $name ?></div>
@@ -247,18 +249,18 @@ $icons = is_array($iconsList) ? array_values($iconsList) : $iconsList;
      */
     ?>
     <?php if ($iconsList == 'text' || $iconsList == 'none'): ?>
-        <?php if ($showIDAttribute && $showNameAttribute): ?>
+        <?php if ($showIDAttribute): ?>
             <div class="row">
                 <div class="col-sm-4">
                     <?= $keyField ?>
                 </div>
                 <div class="col-sm-8">
-                    <?= $nameField ?>
+                    <?= $form->field($node, $nameAttribute)->textInput($inputOpts) ?>
                 </div>
             </div>
         <?php else: ?>
             <?= $keyField ?>
-            <?= $nameField ?>
+            <?= $form->field($node, $nameAttribute)->textInput($inputOpts) ?>
         <?php endif; ?>
         <?php if ($iconsList === 'text'): ?>
             <div class="row">
@@ -266,7 +268,7 @@ $icons = is_array($iconsList) ? array_values($iconsList) : $iconsList;
                     <?= $form->field($node, $iconTypeAttribute)->dropdownList([
                         TreeView::ICON_CSS => 'CSS Suffix',
                         TreeView::ICON_RAW => 'Raw Markup',
-                        ], $inputOpts) ?>
+                    ], $inputOpts) ?>
                 </div>
                 <div class="col-sm-8">
                     <?= $form->field($node, $iconAttribute)->textInput($inputOpts) ?>
@@ -278,7 +280,7 @@ $icons = is_array($iconsList) ? array_values($iconsList) : $iconsList;
             <div class="col-sm-6">
                 <?= $keyField ?>
                 <?= Html::activeHiddenInput($node, $iconTypeAttribute) ?>
-                <?= $nameField ?>
+                <?= $form->field($node, $nameAttribute)->textArea(['rows' => 3] + $inputOpts) ?>
             </div>
             <div class="col-sm-6">
                 <?= /** @noinspection PhpUndefinedMethodInspection */
@@ -289,10 +291,10 @@ $icons = is_array($iconsList) ? array_values($iconsList) : $iconsList;
                             $value = '';
                         }
                         return '<div class="radio">' . Html::radio($name, $checked, [
-                                'value' => $value,
-                                'label' => $label,
-                                'disabled' => !empty($inputOpts['readonly']) || !empty($inputOpts['disabled']),
-                            ]) . '</div>';
+                            'value' => $value,
+                            'label' => $label,
+                            'disabled' => !empty($inputOpts['readonly']) || !empty($inputOpts['disabled'])
+                        ]) . '</div>';
                     },
                     'selector' => 'radio',
                 ]) ?>
@@ -330,14 +332,13 @@ $icons = is_array($iconsList) ? array_values($iconsList) : $iconsList;
         <div class="row">
             <div class="col-sm-4">
                 <?= $form->field($node, 'active')->checkbox() ?>
-                <?= $form->field($node, 'visible')->checkbox() ?>
-                <?= $form->field($node, 'readonly')->checkbox() ?>
-                <?= $form->field($node, 'disabled')->checkbox() ?>
-                <?= $form->field($node, 'child_allowed')->checkbox() ?>
-            </div>
-            <div class="col-sm-4">
                 <?= $form->field($node, 'selected')->checkbox() ?>
                 <?= $form->field($node, 'collapsed')->checkbox($flagOptions) ?>
+                <?= $form->field($node, 'visible')->checkbox() ?>
+            </div>
+            <div class="col-sm-4">
+                <?= $form->field($node, 'readonly')->checkbox() ?>
+                <?= $form->field($node, 'disabled')->checkbox() ?>
                 <?= $form->field($node, 'removable')->checkbox() ?>
                 <?= $form->field($node, 'removable_all')->checkbox($flagOptions) ?>
             </div>
@@ -356,18 +357,19 @@ $icons = is_array($iconsList) ? array_values($iconsList) : $iconsList;
         ?>
         <?= $renderContent(Module::VIEW_PART_4) ?>
     <?php endif; ?>
-    <?php
-    /**
-     * SECTION 13: Additional views part 5 accessible by all users after admin zone.
-     */
-    ?>
-    <?= $renderContent(Module::VIEW_PART_5) ?>
-<?php else: ?>
-    <?= $noNodesMessage ?>
+
 <?php endif; ?>
 <?php
 /**
  * END VALID NODE DISPLAY
  */
 ?>
-<?php ActiveForm::end(); ?>
+
+<?php ActiveForm::end() ?>
+
+<?php
+/**
+ * SECTION 13: Additional views part 5 accessible by all users after admin zone.
+ */
+?>
+<?= $noNodesMessage ? $noNodesMessage : $renderContent(Module::VIEW_PART_5) ?>

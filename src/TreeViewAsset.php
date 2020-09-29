@@ -1,9 +1,18 @@
 <?php
 
 /**
- * @copyright Copyright &copy; Kartik Visweswaran, Krajee.com, 2015 - 2019
+ * Aria S.p.A.
+ * OPEN 2.0
+ *
+ *
+ * @package    Open20Package
+ * @category   CategoryName
+ */
+
+/**
+ * @copyright Copyright &copy; Kartik Visweswaran, Krajee.com, 2015 - 2017
  * @package   yii2-tree-manager
- * @version   1.1.3
+ * @version   1.0.8
  */
 
 namespace kartik\tree;
@@ -21,12 +30,18 @@ class TreeViewAsset extends AssetBundle
     /**
      * @inheritdoc
      */
+    public $depends = [
+        'yii\web\JqueryAsset',
+        'yii\bootstrap\BootstrapAsset',
+        'yii\widgets\ActiveFormAsset',
+        'yii\validators\ValidationAsset',
+    ];
+
+    /**
+     * @inheritdoc
+     */
     public function init()
     {
-        $this->depends = array_merge($this->depends, [
-            'yii\widgets\ActiveFormAsset',
-            'yii\validators\ValidationAsset',
-        ]);
         $this->setSourcePath(__DIR__ . '/assets');
         $this->setupAssets('js', ['js/kv-tree']);
         $this->setupAssets('css', ['css/kv-tree']);

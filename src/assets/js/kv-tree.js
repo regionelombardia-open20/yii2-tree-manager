@@ -1,18 +1,18 @@
 /*!
- * @copyright Copyright &copy; Kartik Visweswaran, Krajee.com, 2015 - 2019
+ * @copyright Copyright &copy; Kartik Visweswaran, Krajee.com, 2015 - 2017
  * @package yii2-tree-manager
- * @version 1.1.3
+ * @version 1.0.8
  * 
  * Tree View Validation Module.
  *
  * Author: Kartik Visweswaran
- * Copyright: 2015 - 2019, Kartik Visweswaran, Krajee.com
+ * Copyright: 2015 - 2017, Kartik Visweswaran, Krajee.com
  * For more JQuery plugins visit http://plugins.krajee.com
  * For more Yii related demos visit http://demos.krajee.com
  */
 (function ($) {
     /*jshint bitwise: false*/
-    'use strict';
+    "use strict";
 
     var $h, TreeView;
 
@@ -33,14 +33,13 @@
             return value === null || value === undefined || value.length === 0 || (trim && $.trim(value) === '');
         },
         escapeRegExp: function (str) {
-            // noinspection RegExpRedundantEscape
-            return str.replace(/[\-\[\]\/\{}\(\)\*\+\?\.\\\^\$\|]/g, '\\$&');
+            return str.replace(/[\-\[\]\/\{}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
         },
         addCss: function ($el, css) {
             $el.removeClass(css).addClass(css);
         },
         hashString: function (s) {
-            return s.split('').reduce(function (a, b) {
+            return s.split("").reduce(function (a, b) {
                 a = ((a << 5) - a) + b.charCodeAt(0);
                 return a & a;
             }, 0);
@@ -71,7 +70,7 @@
             self.dialogLib = window[self.dialogLib] || '';
             self.btns = $.extend({}, $h.DEFAULT_BUTTONS, self.btns);
             self.$tree = $('#' + self.treeId);
-            self.$treeContainer = self.$tree.closest('.kv-tree-wrapper');
+            self.$treeContainer = self.$tree.parent();
             self.$detail = $('#' + self.detailId);
             self.$toolbar = $('#' + self.toolbarId);
             self.$wrapper = $('#' + self.wrapperId);
@@ -115,13 +114,6 @@
                 }
             };
         },
-        getAjaxData: function (data) {
-            var objCsrf = {}, msg = this.messages,
-                nodeTitles = {nodeTitle: msg.nodeTitle, nodeTitlePlural: msg.nodeTitlePlural};
-            //noinspection JSUnresolvedVariable
-            objCsrf[yii.getCsrfParam() || '_csrf'] = yii.getCsrfToken(); // jshint ignore:line
-            return $.extend(true, {}, data, objCsrf, nodeTitles);
-        },
         validateTooltips: function () {
             var self = this;
             if (self.showTooltips) {
@@ -146,19 +138,18 @@
             }
             var $nodes = self.$tree.find('li');
             $nodes.removeClass('kv-selected');
-            selected = selected.split(',');
+            selected = selected.split(",");
             $(selected).each(function (i, key) {
                 $h.addCss(self.$tree.find('li[data-key="' + key + '"]'), 'kv-selected');
             });
         },
-        raise: function (event, params) {
-            var self = this, e = $.Event(event);
-            if (params !== undefined) {
-                self.$element.trigger(e, params);
+        raise: function (event) {
+            var self = this;
+            if (arguments.length > 1) {
+                self.$element.trigger(event, arguments[1]);
             } else {
-                self.$element.trigger(e);
+                self.$element.trigger(event);
             }
-            return !e.isDefaultPrevented() && e.result !== false;
         },
         enableToolbar: function () {
             var self = this;
@@ -180,14 +171,14 @@
         showAlert: function (msg, type, callback) {
             var self = this, $detail = self.$detail, $alert = $detail.find('.alert-' + type);
             $detail.find('.kv-select-node-msg').remove();
-            $alert.removeClass(self.hideCssClass).hide().find('div').remove();
+            $alert.removeClass('hide').hide().find('div').remove();
             $alert.append('<div>' + msg + '</div>').fadeIn(self.alertFadeDuration, function () {
                 self.trigAlert($alert, callback);
             });
         },
         removeAlert: function () {
             var self = this;
-            self.$detail.find('.alert').addClass(self.hideCssClass);
+            self.$detail.find('.alert').addClass('hide');
         },
         renderForm: function (key, par, mesg) {
             var self = this, $detail = self.$detail, parent = par || '', msg = mesg || false,
@@ -200,11 +191,9 @@
             $.ajax({
                 type: 'post',
                 dataType: 'json',
-                data: self.getAjaxData({
+                data: {
                     'id': key,
                     'modelClass': self.modelClass,
-                    'hideCssClass': self.hideCssClass,
-                    'defaultBtnCss': self.defaultBtnCss,
                     'isAdmin': self.isAdmin,
                     'formAction': self.formAction,
                     'formOptions': self.formOptions,
@@ -214,26 +203,18 @@
                     'softDelete': self.softDelete,
                     'showFormButtons': self.showFormButtons,
                     'showIDAttribute': self.showIDAttribute,
-                    'showNameAttribute': self.showNameAttribute,
                     'multiple': self.multiple,
                     'nodeView': self.nodeView,
                     'nodeAddlViews': self.nodeAddlViews,
-                    'nodeViewButtonLabels': self.nodeViewButtonLabels,
-                    'nodeViewParams': self.nodeViewParams,
                     'nodeSelected': self.nodeSelected,
-                    'noNodesMessage': self.noNodesMessage,
                     'breadcrumbs': self.breadcrumbs,
                     'allowNewRoots': self.allowNewRoots,
-                    'treeManageHash': self.treeManageHash,
-                    'treeRemoveHash': self.treeRemoveHash,
-                    'treeMoveHash': self.treeMoveHash
-                }),
+                    'treeManageHash': self.treeManageHash
+                },
                 url: vUrl,
                 cache: true,
                 beforeSend: function (jqXHR, settings) {
-                    if (!self.raise('treeview:beforeselect', [key, jqXHR, settings])) {
-                        return;
-                    }
+                    self.raise('treeview.beforeselect', [key, jqXHR, settings]);
                     if ($form.length) {
                         $form.off().yiiActiveForm('destroy').remove();
                     }
@@ -242,13 +223,9 @@
                 },
                 success: function (data, textStatus, jqXHR) {
                     $detail.removeClass('kv-loading');
-                    if (!self.raise('treeview:selected', [key, data, textStatus, jqXHR])) {
-                        return;
-                    }
                     if (data.status === 'error') {
-                        if (self.raise('treeview:selecterror', [key, data, textStatus, jqXHR])) {
-                            $detail.html('<div class="alert alert-danger" style="margin-top:20px">' + data.out + '</div>');
-                        }
+                        $detail.html('<div class="alert alert-danger" style="margin-top:20px">' + data.out + '</div>');
+                        self.raise('treeview.selecterror', [key, data, textStatus, jqXHR]);
                         return;
                     }
                     $detail.html(data.out);
@@ -260,14 +237,14 @@
                     if (msg !== false && !$h.isEmpty(msg.out)) {
                         self.showAlert(msg.out, msg.type);
                     }
+                    self.raise('treeview.selected', [key, data, textStatus, jqXHR]);
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
-                    self.raise('treeview:selectajaxerror', [key, jqXHR, textStatus, errorThrown]);
+                    self.raise('treeview.selectajaxerror', [key, jqXHR, textStatus, errorThrown]);
                 },
                 complete: function (jqXHR) {
-                    if (self.raise('treeview:selectajaxcomplete', [key, jqXHR])) {
-                        self.validateTooltips();
-                    }
+                    self.validateTooltips();
+                    self.raise('treeview.selectajaxcomplete', [key, jqXHR]);
                 }
             });
         },
@@ -293,7 +270,7 @@
                 self.renderForm(key, null, msg);
             }
             $sel = $currNode.closest('li');
-            if ($sel.data('disabled')) {
+            if ($sel.hasClass('kv-disabled')) {
                 self.disableToolbar();
             } else {
                 self.enableToolbar();
@@ -313,9 +290,6 @@
             }
             if (!$sel.data('movable-r')) {
                 self.disable('moveR');
-            }
-            if (!$sel.data('child-allowed')) {
-                self.disable('create');
             }
             self.parseParentFlag(key);
         },
@@ -376,27 +350,21 @@
                 $.ajax({
                     type: 'post',
                     dataType: 'json',
-                    data: self.getAjaxData({
+                    data: {
                         'id': key,
                         'modelClass': self.modelClass,
                         'softDelete': self.softDelete,
                         'treeRemoveHash': self.treeRemoveHash
-                    }),
+                    },
                     url: self.actions.remove,
                     beforeSend: function (jqXHR, settings) {
-                        if (!self.raise('treeview:beforeremove', [key, jqXHR, settings])) {
-                            return;
-                        }
+                        self.raise('treeview.beforeremove', [key, jqXHR, settings]);
                         $form.hide();
                         self.removeAlert();
                         $h.addCss($detail, 'kv-loading');
                     },
                     success: function (data, textStatus, jqXHR) {
-                        $detail.removeClass('kv-loading');
                         if (data.status === 'success') {
-                            if (!self.raise('treeview:remove', [key, data, textStatus, jqXHR])) {
-                                return;
-                            }
                             if ((self.isAdmin || self.showInactive) && self.softDelete) {
                                 self.showAlert(data.out, 'info');
                                 $form.show();
@@ -415,19 +383,19 @@
                             if (!self.softDelete) {
                                 self.disableToolbar();
                             }
+                            self.raise('treeview.remove', [key, data, textStatus, jqXHR]);
                         } else {
-                            if (!self.raise('treeview:removeerror', [key, data, textStatus, jqXHR])) {
-                                return;
-                            }
                             self.showAlert(data.out, 'danger');
                             $form.show();
+                            self.raise('treeview.removeerror', [key, data, textStatus, jqXHR]);
                         }
+                        $detail.removeClass('kv-loading');
                     },
                     error: function (jqXHR, textStatus, errorThrown) {
-                        self.raise('treeview:removeajaxerror', [key, jqXHR, textStatus, errorThrown]);
+                        self.raise('treeview.removeajaxerror', [key, jqXHR, textStatus, errorThrown]);
                     },
                     complete: function (jqXHR) {
-                        self.raise('treeview:removeajaxcomplete', [jqXHR]);
+                        self.raise('treeview.removeajaxcomplete', [jqXHR]);
                     }
                 });
             });
@@ -500,37 +468,31 @@
                     };
                     break;
                 default:
-                    throw 'Invalid move direction \'' + dir + '\'';
+                    throw "Invalid move direction '" + dir + "'";
             }
             keyFrom = $nodeFrom.data('key');
             keyTo = $nodeTo.data('key');
             $.ajax({
                 type: 'post',
                 dataType: 'json',
-                data: self.getAjaxData({
+                data: {
                     'idFrom': keyFrom,
                     'idTo': keyTo,
                     'modelClass': self.modelClass,
                     'dir': dir,
                     'allowNewRoots': self.allowNewRoots,
                     'treeMoveHash': self.treeMoveHash
-                }),
+                },
                 url: self.actions.move,
                 beforeSend: function (jqXHR, settings) {
-                    if (!self.raise('treeview:beforemove', [dir, keyFrom, keyTo, jqXHR, settings])) {
-                        return;
-                    }
+                    self.raise('treeview.beforemove', [dir, keyFrom, keyTo, jqXHR, settings]);
                     $h.addCss(self.$treeContainer, 'kv-loading-search');
                 },
                 success: function (data, textStatus, jqXHR) {
                     if ($detail.length > 0) {
                         self.removeAlert();
                     }
-                    self.$treeContainer.removeClass('kv-loading-search');
                     if (data.status === 'success') {
-                        if (!self.raise('treeview:move', [dir, keyFrom, keyTo, data, textStatus, jqXHR])) {
-                            return;
-                        }
                         fnMove();
                         if (dir === 'l' || dir === 'r') {
                             self.treeCache.timeout = 0;
@@ -551,25 +513,25 @@
                                 $(this).removeClass('kv-collapsed');
                             }
                         });
+                        self.raise('treeview.move', [dir, keyFrom, keyTo, data, textStatus, jqXHR]);
                     } else {
-                        if ($detail.length > 0 && self.raise('treeview:moveerror',
-                            [dir, keyFrom, keyTo, data, textStatus, jqXHR])) {
+                        if ($detail.length > 0) {
                             self.showAlert(data.out, 'danger');
+                            self.raise('treeview.moveerror', [dir, keyFrom, keyTo, data, textStatus, jqXHR]);
                         }
                     }
+                    self.$treeContainer.removeClass('kv-loading-search');
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
-                    self.$treeContainer.removeClass('kv-loading-search');
-                    if (!self.raise('treeview:moveajaxerror', [dir, keyFrom, keyTo, jqXHR, textStatus, errorThrown])) {
-                        return;
-                    }
                     if ($detail.length > 0) {
                         self.removeAlert();
                         self.showAlert(errorThrown, 'danger');
                     }
+                    self.$treeContainer.removeClass('kv-loading-search');
+                    self.raise('treeview.moveajaxerror', [dir, keyFrom, keyTo, jqXHR, textStatus, errorThrown]);
                 },
                 complete: function (jqXHR) {
-                    self.raise('treeview:moveajaxcomplete', [jqXHR]);
+                    self.raise('treeview.moveajaxcomplete', [jqXHR]);
                 }
             });
         },
@@ -577,13 +539,12 @@
             var self = this, keys = '', desc = '';
             self.$tree.find('.kv-selected').each(function () {
                 var $node = $(this), sep = $h.isEmpty(keys) ? '' : ',';
+                var SepName = $h.isEmpty(keys) ? '' : '||';
                 keys += sep + $node.data('key');
-                desc += sep + $node.find('>.kv-tree-list .kv-node-label').text();
+                desc += SepName + $node.find('>.kv-tree-list .kv-node-label').text();
             });
-            if (!self.raise('treeview:change', [keys, desc])) {
-                return;
-            }
             self.$element.val(keys);
+            self.raise('treeview.change', [keys, desc]);
             self.raise('change');
         },
         getNewNode: function () {
@@ -606,11 +567,6 @@
                 self.dialogLib.alert(msg.invalidCreateNode);
                 return;
             }
-            if (!$node.attr('data-child-allowed')) {
-                // noinspection JSUnresolvedVariable
-                self.dialogLib.alert(msg.noChildAllowed);
-                return;
-            }
             self.$toolbar.find('.kv-' + self.btns.trash).removeAttr('disabled');
             $newNode = $node.find('> ul > li.kv-empty');
             if ($newNode.length > 0) {
@@ -620,10 +576,7 @@
                 $h.addCss($newNode.find('.kv-node-detail'), 'kv-focussed');
                 return;
             }
-            if (!self.raise('treeview:create', [key])) {
-                return;
-            }
-            $newNode = $(document.createElement('li')).attr({
+            $newNode = $(document.createElement("li")).attr({
                 'data-key': 'empty-' + $node.data('key'),
                 'class': 'kv-empty'
             });
@@ -635,7 +588,7 @@
                 $node.children('ul').append($newNode);
             } else {
                 $h.addCss($node, 'kv-parent');
-                $n = $(document.createElement('ul')).append($newNode);
+                $n = $(document.createElement("ul")).append($newNode);
                 $node.append($n);
             }
             self.renderForm(null, $node.data('key'));
@@ -649,13 +602,11 @@
                 self.renderForm(null, key);
                 self.$toolbar.find('.kv-' + self.btns.trash).removeAttr('disabled');
             });
+            self.raise('treeview.create', [parent]);
         },
         createRoot: function () {
             var self = this, $treeRoot = self.$tree.find('.kv-tree'),
                 $root = $treeRoot.children('li.kv-empty');
-            if (!self.raise('treeview:createroot')) {
-                return;
-            }
             self.$tree.find('.kv-node-detail').removeClass('kv-focussed');
             if ($root.length > 0) {
                 $h.addCss($root.find('.kv-node-detail'), 'kv-focussed');
@@ -663,7 +614,7 @@
                 return;
             }
             var content = self.getNewNode(),
-                $node = $(document.createElement('li')).attr({'data-key': 'empty-root', 'class': 'kv-empty'});
+                $node = $(document.createElement("li")).attr({'data-key': 'empty-root', 'class': 'kv-empty'});
             $node.html(content);
             $treeRoot.append($node);
             self.renderForm(null, self.rootKey);
@@ -676,70 +627,59 @@
                 self.renderForm(null, self.rootKey);
                 self.$toolbar.find('.kv-' + self.btns.trash).removeAttr('disabled');
             });
+            self.raise('treeview.createroot');
         },
         toggle: function ($tog) {
             var self = this, $node = $tog.closest('li.kv-parent'), nodeKey = $node.data('key');
             if ($node.hasClass('kv-collapsed')) {
-                if (self.raise('treeview:expand', [nodeKey])) {
-                    $node.removeClass('kv-collapsed');
-                }
+                $node.removeClass('kv-collapsed');
+                self.raise('treeview.expand', [nodeKey]);
             } else {
-                if (self.raise('treeview:collapse', [nodeKey])) {
-                    $h.addCss($node, 'kv-collapsed');
-                }
+                $h.addCss($node, 'kv-collapsed');
+                self.raise('treeview.collapse', [nodeKey]);
             }
         },
         toggleAll: function (action, trig) {
             var self = this;
             if (action === 'expand') {
-                if (trig && !self.raise('treeview:expandall')) {
-                    return;
+                self.$tree.removeClass('kv-collapsed');
+                self.$tree.find('.kv-collapsed').removeClass('kv-collapsed');
+                if (trig) {
+                    self.raise('treeview.expandall');
                 }
-                self.$treeContainer.removeClass('kv-collapsed');
-                self.$treeContainer.find('.kv-collapsed').removeClass('kv-collapsed');
                 return;
             }
-            if (trig && !self.raise('treeview:collapseall')) {
-                return;
+            $h.addCss(self.$tree.find('li.kv-parent'), 'kv-collapsed');
+            $h.addCss(self.$tree, 'kv-collapsed');
+            if (trig) {
+                self.raise('treeview.collapseall');
             }
-            $h.addCss(self.$treeContainer.find('li.kv-parent'), 'kv-collapsed');
-            $h.addCss(self.$treeContainer, 'kv-collapsed');
         },
         check: function ($chk) {
-            // noinspection EqualityComparisonWithCoercionJS
             var self = this, isRoot = ($chk === true), desc, $node = isRoot ? self.$tree : $chk.closest('li'),
                 nodeKey = isRoot ? '' : $node.data('key'), isMultiple = self.multiple && self.multiple != 0; // jshint ignore:line
             if ($node.hasClass('kv-disabled') || (isRoot && !isMultiple)) {
                 return;
             }
             if ($node.hasClass('kv-selected')) {
-                if (!self.raise('treeview:unchecked', [nodeKey])) {
-                    return;
-                }
                 $node.removeClass('kv-selected');
                 if (!isMultiple) {
-                    if (!self.raise('treeview:change', ['', ''])) {
-                        return;
-                    }
                     self.$tree.find('li:not(.kv-disabled)').removeClass('kv-selected');
                     self.$element.val('');
+                    self.raise('treeview.change', ['', '']);
                     self.raise('change');
                 } else {
                     if (self.cascadeSelectChildren) {
                         $node.find('li:not(.kv-disabled)').removeClass('kv-selected');
                     }
                 }
+                self.raise('treeview.unchecked', [nodeKey]);
             } else {
-                if (!self.raise('treeview:checked', [nodeKey])) {
-                    return;
-                }
                 if (!isMultiple) {
-                    desc = $node.find('>.kv-tree-list .kv-node-label').text();
-                    if (!self.raise('treeview:change', [nodeKey, desc])) {
-                        return;
-                    }
                     self.$tree.find('li:not(.kv-disabled)').removeClass('kv-selected');
                     self.$element.val(nodeKey);
+                    desc = $node.find('>.kv-tree-list .kv-node-label').text();
+                    self.raise('treeview.change', [nodeKey, desc]);
                     self.raise('change');
                 } else {
                     if (self.cascadeSelectChildren) {
@@ -747,6 +687,7 @@
                     }
                 }
                 $h.addCss($node, 'kv-selected');
+                self.raise('treeview.checked', [nodeKey]);
             }
             if (isMultiple) {
                 self.setSelected();
@@ -805,7 +746,7 @@
             if (self.hasActiveFilter) {
                 self.hasActiveFilter = false;
             }
-            self.$treeContainer.removeClass('kv-active-filter');
+            self.$treeContainer.removeClass("kv-active-filter");
             self.$treeContainer.find('.kv-highlight').removeClass('kv-highlight');
             self.$treeContainer.find('.kv-tree-container li.kv-filter-match').removeClass('kv-filter-match');
         },
@@ -834,7 +775,8 @@
             });
             // node toggle all actions
             self.$treeContainer.find('.kv-root-node-toggle').on('click', function () {
-                if (self.$treeContainer.hasClass('kv-collapsed')) {
+                var $node = $(this), $root = $node.closest('.kv-tree-container');
+                if ($root.hasClass('kv-collapsed')) {
                     self.toggleAll('expand', true);
                 } else {
                     self.toggleAll('collapse', true);
@@ -856,12 +798,12 @@
                     self.toggleAll('collapse', false);
                     filter = $h.escapeRegExp(filter);
                     self.$tree.find('.kv-node-label').each(function () {
-                        var $label = $(this), text = $label.text(), pos = text.search(new RegExp(filter, 'i')), s, mark;
+                        var $label = $(this), text = $label.text(), pos = text.search(new RegExp(filter, "i")), s, mark;
                         if (pos < 0) {
                             $label.removeClass('kv-highlight');
                         } else {
                             $h.addCss($label, 'kv-highlight');
-                            s = new RegExp(filter, 'ig');
+                            s = new RegExp(filter, "ig");
                             mark = text.replace(s, function (term) {
                                 return '<span class="kv-search-found">' + term + '</span>';
                             });
@@ -879,7 +821,7 @@
                     });
                     self.$treeContainer.removeClass('kv-loading-search');
                     self.$treeContainer.find('.kv-tree-container').removeClass('kv-collapsed');
-                    self.raise('treeview:search');
+                    self.raise('treeview.search');
                     if (filter.length === 0) {
                         self.blurFilter();
                     }
@@ -901,9 +843,6 @@
             self.$tree.find('.kv-node-detail').each(function () {
                 $(this).on('click', function () {
                     var $el = $(this), $node = $el.closest('li'), key = $node.data('key');
-                    if (!self.raise('treeview:select', [key])) {
-                        return;
-                    }
                     if (self.$tree.hasClass('kv-tree-input-widget')) {
                         $el.removeClass('kv-focussed');
                         self.check($node);
@@ -914,6 +853,7 @@
                     }
                     self.select(key);
                     self.removeAlert();
+                    self.raise('treeview.select', [key]);
                 });
             });
             // create node
@@ -946,7 +886,7 @@
             });
             self.$detail.find('.alert').each(function () {
                 var $alert = $(this);
-                if (!$alert.hasClass(self.hideCssClass)) {
+                if (!$alert.hasClass('hide')) {
                     $alert.hide().fadeIn(1500);
                     self.trigAlert($alert);
                 }
@@ -1021,9 +961,7 @@
             nodeTop: '',
             nodeBottom: '',
             nodeLeft: '',
-            nodeRight: '',
-            nodeTitle: '',
-            nodeTitlePlural: ''
+            nodeRight: ''
         },
         breadcrumbs: {},
         cascadeSelectChildren: true,

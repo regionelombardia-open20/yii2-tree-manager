@@ -1,27 +1,37 @@
 <?php
 
 /**
- * @copyright Copyright &copy; Kartik Visweswaran, Krajee.com, 2015 - 2019
+ * Aria S.p.A.
+ * OPEN 2.0
+ *
+ *
+ * @package    Open20Package
+ * @category   CategoryName
+ */
+
+/**
+ * @copyright Copyright &copy; Kartik Visweswaran, Krajee.com, 2015 - 2017
  * @package   yii2-tree-manager
- * @version   1.1.3
+ * @version   1.0.8
  */
 
 namespace kartik\tree\controllers;
 
 use Closure;
 use Exception;
-use kartik\tree\Module;
 use kartik\tree\models\Tree;
 use kartik\tree\TreeView;
-use kartik\tree\TreeSecurity;
 use Yii;
 use yii\base\ErrorException;
 use yii\base\Event;
 use yii\base\InvalidCallException;
 use yii\base\InvalidConfigException;
+use yii\base\InvalidParamException;
 use yii\base\NotSupportedException;
+use yii\console\Application;
 use yii\db\Exception as DbException;
 use yii\helpers\ArrayHelper;
+use yii\helpers\Json;
 use yii\web\Controller;
 use yii\web\Response;
 use yii\web\View;
@@ -41,7 +51,6 @@ class NodeController extends Controller
         'softDelete',
         'showFormButtons',
         'showIDAttribute',
-        'showNameAttribute',
         'multiple',
         'treeNodeModify',
         'allowNewRoots',
@@ -67,6 +76,9 @@ class NodeController extends Controller
             $success = false;
             $error = $e->getMessage();
         } catch (NotSupportedException $e) {
+            $success = false;
+            $error = $e->getMessage();
+        } catch (InvalidParamException $e) {
             $success = false;
             $error = $e->getMessage();
         } catch (InvalidConfigException $e) {
@@ -126,68 +138,115 @@ class NodeController extends Controller
         }
     }
 
+    /**
+     * Checks signature of posted data for ensuring security against data tampering.
+     *
+     * @param string $action the controller action for which post data signature will be verified
+     * @param array $data the posted data
+     *
+     * @throws InvalidCallException
+     */
+    protected static function checkSignature($action, $data = [])
+    {
+        if (Yii::$app instanceof Application) {
+            return; // skip hash signature validation for console apps
+        }
+        $module = TreeView::module();
+        $security = Yii::$app->security;
+        $modelClass = '\kartik\tree\models\Tree';
+        $validate = function ($act, $oldHash, $newHashData) use ($module, $security) {
+            $salt = $module->treeEncryptSalt;
+            $newHash = $security->hashData($newHashData, $salt);
+            if ($security->validateData($oldHash, $salt) && $oldHash === $newHash) {
+                return;
+            }
+            $params = YII_DEBUG ? '<pre>OLD HASH:<br>' . $oldHash . '<br>NEW HASH:<br>' . $newHash . '</pre>' : '';
+            $message = Yii::t(
+                'kvtree',
+                '<h4>Operation Disallowed</h4><hr>Invalid request signature detected during tree data <b>{action}</b> action! Please refresh the page and retry.{params}',
+                ['action' => $act, 'params' => $params]
+            );
+            throw new InvalidCallException($message);
+        };
+        switch ($action) {
+            case 'save':
+                $treeNodeModify = $currUrl = $treeSaveHash = null;
+                extract($data);
+                $dataToHash = !!$treeNodeModify . $currUrl . $modelClass;
+                $validate($action, $treeSaveHash, $dataToHash);
+                break;
+            case 'manage':
+                $treeManageHash = null;
+                $isAdmin = $softDelete = $showFormButtons = $showIDAttribute = false;
+                $currUrl = $nodeView = $formAction = $nodeSelected = '';
+                $formOptions = $iconsList = $nodeAddlViews = $breadcrumbs = [];
+                extract($data);
+                $icons = is_array($iconsList) ? array_values($iconsList) : $iconsList;
+                $dataToHash = $modelClass . !!$isAdmin . !!$softDelete . !!$showFormButtons .
+                    !!$showIDAttribute . $currUrl . $nodeView . $nodeSelected . Json::encode($formOptions) .
+                    Json::encode($nodeAddlViews) . Json::encode($icons) . Json::encode($breadcrumbs);
+                $validate($action, $treeManageHash, $dataToHash);
+                break;
+            case 'remove':
+                $treeRemoveHash = null;
+                $softDelete = false;
+                extract($data);
+                $dataToHash = $modelClass . $softDelete;
+                $validate($action, $treeRemoveHash, $dataToHash);
+                break;
+            case 'move':
+                $treeMoveHash = $allowNewRoots = null;
+                extract($data);
+                $dataToHash = $modelClass . $allowNewRoots;
+                $validate($action, $treeMoveHash, $dataToHash);
+                break;
+            default:
+                break;
+        }
+    }
 
     /**
      * Saves a node once form is submitted
-     * @throws InvalidConfigException
-     * @throws ErrorException
      */
     public function actionSave()
     {
-        /**
-         * @var Module $module
-         * @var Tree $node
-         * @var Tree $parent
-         * @var \yii\web\Session $session
-         */
         $post = Yii::$app->request->post();
         static::checkValidRequest(false, !isset($post['treeNodeModify']));
+        $treeNodeModify = $parentKey = $currUrl = $treeSaveHash = null;
+        $modelClass = '\kartik\tree\models\Tree';
         $data = static::getPostData();
-        $parentKey = ArrayHelper::getValue($data, 'parentKey', null);
-        $treeNodeModify = ArrayHelper::getValue($data, 'treeNodeModify', null);
-        $currUrl = ArrayHelper::getValue($data, 'currUrl', '');
-        $treeClass = TreeSecurity::getModelClass($data);
+        extract($data);
         $module = TreeView::module();
         $keyAttr = $module->dataStructure['keyAttribute'];
-        $nodeTitles = TreeSecurity::getNodeTitles($data);
-
+        /**
+         * @var Tree $modelClass
+         * @var Tree $node
+         * @var Tree $parent
+         */
         if ($treeNodeModify) {
-            $node = new $treeClass;
-            $successMsg = Yii::t('kvtree', 'The {node} was successfully created.', $nodeTitles);
-            $errorMsg = Yii::t('kvtree', 'Error while creating the {node}. Please try again later.', $nodeTitles);
+            $node = new $modelClass;
+            $successMsg = Yii::t('kvtree', 'The node was successfully created.');
+            $errorMsg = Yii::t('kvtree', 'Error while creating the node. Please try again later.');
         } else {
-            $tag = explode("\\", $treeClass);
+            $tag = explode("\\", $modelClass);
             $tag = array_pop($tag);
             $id = $post[$tag][$keyAttr];
-            $node = $treeClass::findOne($id);
-            $successMsg = Yii::t('kvtree', 'Saved the {node} details successfully.', $nodeTitles);
-            $errorMsg = Yii::t('kvtree', 'Error while saving the {node}. Please try again later.', $nodeTitles);
+            $node = $modelClass::findOne($id);
+            $successMsg = Yii::t('kvtree', 'Saved the node details successfully.');
+            $errorMsg = Yii::t('kvtree', 'Error while saving the node. Please try again later.');
         }
         $node->activeOrig = $node->active;
         $isNewRecord = $node->isNewRecord;
         $node->load($post);
-        $errors = $success = false;
-        if (Yii::$app->has('session')) {
-            $session = Yii::$app->session;
-        }
         if ($treeNodeModify) {
             if ($parentKey == TreeView::ROOT_KEY) {
                 $node->makeRoot();
             } else {
-                $parent = $treeClass::findOne($parentKey);
-                if ($parent->isChildAllowed()) {
-                    $node->appendTo($parent);
-                } else {
-                    $errorMsg = Yii::t('kvtree', 'You cannot add children under this {node}.', $nodeTitles);
-                    if (Yii::$app->has('session')) {
-                        $session->setFlash('error', $errorMsg);
-                    } else {
-                        throw new ErrorException("Error saving {node}!\n{$errorMsg}", $nodeTitles);
-                    }
-                    return $this->redirect($currUrl);
-                }
+                $parent = $modelClass::findOne($parentKey);
+                $node->appendTo($parent);
             }
         }
+        $errors = $success = false;
         if ($node->save()) {
             // check if active status was changed
             if (!$isNewRecord && $node->activeOrig != $node->active) {
@@ -205,8 +264,7 @@ class NodeController extends Controller
                 $success = false;
                 $errorMsg = "<ul style='padding:0'>\n";
                 foreach ($errors as $err) {
-                    $errorMsg .= "<li>" . Yii::t('kvtree', "{node} # {id} - '{name}': {error}",
-                            $err + $nodeTitles) . "</li>\n";
+                    $errorMsg .= "<li>" . Yii::t('kvtree', "Node # {id} - '{name}': {error}", $err) . "</li>\n";
                 }
                 $errorMsg .= "</ul>";
             }
@@ -214,6 +272,7 @@ class NodeController extends Controller
             $errorMsg = '<ul style="margin:0"><li>' . implode('</li><li>', $node->getFirstErrors()) . '</li></ul>';
         }
         if (Yii::$app->has('session')) {
+            $session = Yii::$app->session;
             $session->set(ArrayHelper::getValue($post, 'nodeSelected', 'kvNodeId'), $node->{$keyAttr});
             if ($success) {
                 $session->setFlash('success', $successMsg);
@@ -221,7 +280,7 @@ class NodeController extends Controller
                 $session->setFlash('error', $errorMsg);
             }
         } elseif (!$success) {
-            throw new ErrorException("Error saving {node}!\n{$errorMsg}", $nodeTitles);
+            throw new ErrorException("Error saving node!\n{$errorMsg}");
         }
         return $this->redirect($currUrl);
     }
@@ -229,57 +288,64 @@ class NodeController extends Controller
     /**
      * View, create, or update a tree node via ajax
      *
-     * @return mixed json encoded response
+     * @return string json encoded response
      */
     public function actionManage()
     {
         static::checkValidRequest();
-        $data = static::getPostData();
-        $nodeTitles = TreeSecurity::getNodeTitles($data);
-        $callback = function () use ($data, $nodeTitles) {
-            $id = ArrayHelper::getValue($data, 'id', null);
-            $parentKey = ArrayHelper::getValue($data, 'parentKey', '');
-            $parsedData = TreeSecurity::parseManageData($data);
-            $out = $parsedData['out'];
-            $oldHash = $parsedData['oldHash'];
-            $newHash = $parsedData['newHash'];
+        $callback = function () {
+            $parentKey = null;
+            $modelClass = '\kartik\tree\models\Tree';
+            $isAdmin = $softDelete = $showFormButtons = $showIDAttribute = $allowNewRoots = false;
+            $currUrl = $nodeView = $formAction = $nodeSelected = '';
+            $formOptions = $iconsList = $nodeAddlViews = $breadcrumbs = [];
+            $data = static::getPostData();
+            extract($data);
             /**
-             * @var Module $module
-             * @var Tree $treeClass
+             * @var Tree $modelClass
              * @var Tree $node
              */
-            $treeClass = $out['treeClass'];
             if (!isset($id) || empty($id)) {
-                $node = new $treeClass;
+                $node = new $modelClass;
                 $node->initDefaults();
             } else {
-                $node = $treeClass::findOne($id);
+                $node = $modelClass::findOne($id);
             }
             $module = TreeView::module();
             $params = $module->treeStructure + $module->dataStructure + [
                     'node' => $node,
                     'parentKey' => $parentKey,
-                    'treeManageHash' => $newHash,
-                    'treeRemoveHash' => ArrayHelper::getValue($data, 'treeRemoveHash', ''),
-                    'treeMoveHash' => ArrayHelper::getValue($data, 'treeMoveHash', ''),
-                ] + $out;
-            if (!empty($data['nodeViewParams'])) {
-                $params = ArrayHelper::merge($params, unserialize($data['nodeViewParams']));
-            }
+                    'action' => $formAction,
+                    'formOptions' => empty($formOptions) ? [] : $formOptions,
+                    'modelClass' => $modelClass,
+                    'currUrl' => $currUrl,
+                    'isAdmin' => $isAdmin,
+                    'iconsList' => $iconsList,
+                    'softDelete' => $softDelete,
+                    'showFormButtons' => $showFormButtons,
+                    'showIDAttribute' => $showIDAttribute,
+                    'allowNewRoots' => $allowNewRoots,
+                    'nodeView' => $nodeView,
+                    'nodeAddlViews' => $nodeAddlViews,
+                    'nodeSelected' => $nodeSelected,
+                    'breadcrumbs' => empty($breadcrumbs) ? [] : $breadcrumbs,
+                    'noNodesMessage' => ''
+                ];
             if (!empty($module->unsetAjaxBundles)) {
-                $cb = function ($e) use ($module) {
+                Event::on(
+                    View::className(), View::EVENT_AFTER_RENDER, function ($e) use ($module) {
                     foreach ($module->unsetAjaxBundles as $bundle) {
                         unset($e->sender->assetBundles[$bundle]);
                     }
-                };
-                Event::on(View::class, View::EVENT_AFTER_RENDER, $cb);
+                }
+                );
             }
-            TreeSecurity::checkSignature('manage', $oldHash, $newHash);
-            return $this->renderAjax($out['nodeView'], ['params' => $params]);
+            static::checkSignature('manage', $data);
+            return $this->renderAjax($nodeView, ['params' => $params]);
         };
         return self::process(
             $callback,
-            Yii::t('kvtree', 'Error while viewing the {node}. Please try again later.', $nodeTitles),
+            Yii::t('kvtree', 'Error while viewing the node. Please try again later.'),
             null
         );
     }
@@ -290,30 +356,24 @@ class NodeController extends Controller
     public function actionRemove()
     {
         static::checkValidRequest();
-        $data = static::getPostData();
-        $nodeTitles = TreeSecurity::getNodeTitles($data);
-        $callback = function () use ($data) {
-            $id = ArrayHelper::getValue($data, 'id', null);
-            $parsedData = TreeSecurity::parseRemoveData($data);
-            $out = $parsedData['out'];
-            $oldHash = $parsedData['oldHash'];
-            $newHash = $parsedData['newHash'];
+        $callback = function () {
             /**
-             * @var Tree $treeClass
+             * @var Tree $modelClass
              * @var Tree $node
              */
-            $treeClass = $out['treeClass'];
-            TreeSecurity::checkSignature('remove', $oldHash, $newHash);
-            /**
-             * @var Tree $node
-             */
-            $node = $treeClass::findOne($id);
-            return $node->removeNode($out['softDelete']);
+            $id = null;
+            $modelClass = '\kartik\tree\models\Tree';
+            $softDelete = false;
+            $data = static::getPostData();
+            static::checkSignature('remove', $data);
+            extract($data);
+            $node = $modelClass::findOne($id);
+            return $node->removeNode($softDelete);
         };
         return self::process(
             $callback,
-            Yii::t('kvtree', 'Error removing the {node}. Please try again later.', $nodeTitles),
-            Yii::t('kvtree', 'The {node} was removed successfully.', $nodeTitles)
+            Yii::t('kvtree', 'Error removing the node. Please try again later.'),
+            Yii::t('kvtree', 'The node was removed successfully.')
         );
     }
 
@@ -322,55 +382,45 @@ class NodeController extends Controller
      */
     public function actionMove()
     {
-        static::checkValidRequest();
-        $data = static::getPostData();
-        $dir = ArrayHelper::getValue($data, 'dir', null);
-        $idFrom = ArrayHelper::getValue($data, 'idFrom', null);
-        $idTo = ArrayHelper::getValue($data, 'idTo', null);
-        $parsedData = TreeSecurity::parseMoveData($data);
         /**
-         * @var Tree $treeClass
-         * @var Tree $node
-         */
-        $treeClass = $parsedData['out']['treeClass'];
-        $nodeTitles = TreeSecurity::getNodeTitles($data);
-        /**
+         * @var Tree $modelClass
          * @var Tree $nodeFrom
          * @var Tree $nodeTo
          */
-        $nodeFrom = $treeClass::findOne($idFrom);
-        $nodeTo = $treeClass::findOne($idTo);
+        static::checkValidRequest();
+        $dir = $idFrom = $idTo = $treeMoveHash = null;
+        $modelClass = '\kartik\tree\models\Tree';
+        $allowNewRoots = false;
+        $data = static::getPostData();
+        extract($data);
+        $nodeFrom = $modelClass::findOne($idFrom);
+        $nodeTo = $modelClass::findOne($idTo);
         $isMovable = $nodeFrom->isMovable($dir);
-        $errorMsg = $isMovable ?
-            Yii::t('kvtree', 'Error while moving the {node}. Please try again later.', $nodeTitles) :
-            Yii::t('kvtree', 'The selected {node} cannot be moved.', $nodeTitles);
-        $callback = function () use ($dir, $parsedData, $isMovable, $nodeFrom, $nodeTo, $nodeTitles) {
-            $out = $parsedData['out'];
-            $oldHash = $parsedData['oldHash'];
-            $newHash = $parsedData['newHash'];
+        $errorMsg = $isMovable ? Yii::t('kvtree', 'Error while moving the node. Please try again later.') :
+            Yii::t('kvtree', 'The selected node cannot be moved.');
+        $callback = function () use ($dir, $nodeFrom, $nodeTo, $allowNewRoots, $treeMoveHash, $isMovable, $data) {
             if (!empty($nodeFrom) && !empty($nodeTo)) {
-                TreeSecurity::checkSignature('move', $oldHash, $newHash);
-                if (!$isMovable || ($dir !== 'u' && $dir !== 'd' && $dir !== 'l' && $dir !== 'r')) {
+                static::checkSignature('move', $data);
+                if (!$isMovable) {
                     return false;
                 }
-                if ($dir === 'r') {
-                    $nodeFrom->appendTo($nodeTo);
-                } else {
-                    if ($dir === 'l' && $nodeTo->isRoot() && $out['allowNewRoots']) {
+                if ($dir == 'u') {
+                    $nodeFrom->insertBefore($nodeTo);
+                } elseif ($dir == 'd') {
+                    $nodeFrom->insertAfter($nodeTo);
+                } elseif ($dir == 'l') {
+                    if ($nodeTo->isRoot() && $allowNewRoots) {
                         $nodeFrom->makeRoot();
-                    } elseif ($nodeTo->isRoot()) {
-                        throw new Exception(Yii::t('kvtree',
-                            'Cannot move root level {nodes} before or after other root level {nodes}.', $nodeTitles));
-                    } elseif ($dir == 'u') {
-                        $nodeFrom->insertBefore($nodeTo);
                     } else {
                         $nodeFrom->insertAfter($nodeTo);
                     }
+                } elseif ($dir == 'r') {
+                    $nodeFrom->appendTo($nodeTo);
                 }
                 return $nodeFrom->save();
             }
             return true;
         };
-        return self::process($callback, $errorMsg, Yii::t('kvtree', 'The {node} was moved successfully.', $nodeTitles));
+        return self::process($callback, $errorMsg, Yii::t('kvtree', 'The node was moved successfully.'));
     }
 }
